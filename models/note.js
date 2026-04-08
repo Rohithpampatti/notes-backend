@@ -67,10 +67,16 @@ const noteSchema = new mongoose.Schema(
             default: null,
         },
 
-        // ✅ ADD THIS ONE NEW FIELD (missing from your model)
+        // ✅ REMINDER NOTIFIED FIELD
         reminderNotified: {
             type: Boolean,
             default: false,
+        },
+
+        // ✅ PRIVACY PASSWORD FOR PRIVATE NOTES (User-defined)
+        privacyPassword: {
+            type: String,
+            default: null,
         },
     },
     {
@@ -78,7 +84,8 @@ const noteSchema = new mongoose.Schema(
     }
 );
 
-// ✅ ADD INDEX for better performance (optional but recommended)
+// ✅ ADD INDEXES for better performance
 noteSchema.index({ reminder: 1, reminderDate: 1, reminderNotified: 1 });
+noteSchema.index({ userId: 1, privacyPassword: 1 });
 
 module.exports = mongoose.model("Note", noteSchema);
