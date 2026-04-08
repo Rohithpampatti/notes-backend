@@ -78,7 +78,6 @@ const updateNote = async (req, res) => {
         const userEmail = req.user.email;
         const { title, content, tags, reminder, reminderDate } = req.body;
 
-        // Check if user has edit permission
         const note = await Note.findOne({
             _id: id,
             $or: [
@@ -98,7 +97,6 @@ const updateNote = async (req, res) => {
             return res.status(404).json({ error: 'Note not found or no edit permission' });
         }
 
-        // Update fields
         if (title !== undefined) note.title = title;
         if (content !== undefined) note.content = content;
         if (tags !== undefined) note.tags = tags;
@@ -160,7 +158,6 @@ const shareNote = async (req, res) => {
             return res.status(404).json({ error: 'Note not found' });
         }
 
-        // Check if already shared with this email
         const existingShare = note.sharedWith.find(s => s.email === email);
         if (existingShare) {
             return res.status(400).json({ error: 'Note already shared with this user' });
@@ -232,7 +229,7 @@ const getPublicNote = async (req, res) => {
     }
 };
 
-// ✅ ADD THIS MISSING FUNCTION - Update reminder for a note
+// Update reminder for a note
 const updateReminder = async (req, res) => {
     try {
         const { id } = req.params;
@@ -240,7 +237,6 @@ const updateReminder = async (req, res) => {
         const userId = req.user.id;
         const userEmail = req.user.email;
 
-        // Check if user has edit permission
         const note = await Note.findOne({
             _id: id,
             $or: [
@@ -260,7 +256,6 @@ const updateReminder = async (req, res) => {
             return res.status(404).json({ error: 'Note not found or no edit permission' });
         }
 
-        // Update reminder
         if (date) {
             note.reminder = true;
             note.reminderDate = new Date(date);
@@ -284,6 +279,8 @@ const updateReminder = async (req, res) => {
     }
 };
 
+// ==================== PRIVACY PASSWORD FUNCTIONS ====================
+
 // Set or update privacy password for user's private notes
 const setPrivacyPassword = async (req, res) => {
     try {
@@ -294,14 +291,12 @@ const setPrivacyPassword = async (req, res) => {
             return res.status(400).json({ error: 'Password must be at least 4 characters' });
         }
 
-        // Find any note belonging to user to update privacy password
-        const note = await Note.findOne({ userId });
+        let note = await Note.findOne({ userId });
 
         if (note) {
             note.privacyPassword = password;
             await note.save();
         } else {
-            // Create a placeholder note to store privacy password
             const newNote = new Note({
                 userId,
                 title: "Privacy Settings",
@@ -357,7 +352,66 @@ const hasPrivacyPassword = async (req, res) => {
     }
 };
 
-// Add to module.exports
+// Update privacy password (change existing password)
+const updatePrivacyPassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const userId = req.user.id;
+
+        if (!newPassword || newPassword.length < 4) {
+            return res.status(400).json({ error: 'New password must be at least 4 characters' });
+        }
+
+        const note = await Note.findOne({ userId });
+
+        if (!note || !note.privacyPassword) {
+            return res.status(400).json({ error: 'No privacy password set yet' });
+        }
+
+        // Verify old password
+        if (note.privacyPassword !== oldPassword) {
+            return res.status(401).json({ error: 'Old password is incorrect' });
+        }
+
+        note.privacyPassword = newPassword;
+        await note.save();
+
+        res.json({ message: 'Privacy password updated successfully' });
+    } catch (error) {
+        console.error('Update privacy password error:', error);
+        res.status(500).json({ error: 'Failed to update privacy password' });
+    }
+};
+
+// Remove privacy password
+const removePrivacyPassword = async (req, res) => {
+    try {
+        const { password } = req.body;
+        const userId = req.user.id;
+
+        const note = await Note.findOne({ userId });
+
+        if (!note || !note.privacyPassword) {
+            return res.status(400).json({ error: 'No privacy password set' });
+        }
+
+        // Verify password
+        if (note.privacyPassword !== password) {
+            return res.status(401).json({ error: 'Password is incorrect' });
+        }
+
+        note.privacyPassword = null;
+        await note.save();
+
+        res.json({ message: 'Privacy password removed successfully' });
+    } catch (error) {
+        console.error('Remove privacy password error:', error);
+        res.status(500).json({ error: 'Failed to remove privacy password' });
+    }
+};
+
+// ==================== EXPORTS ====================
+
 module.exports = {
     createNote,
     getNotes,
@@ -368,7 +422,10 @@ module.exports = {
     createPublicLink,
     getPublicNote,
     updateReminder,
-    setPrivacyPassword,      // ✅ Add this
-    verifyPrivacyPassword,   // ✅ Add this
-    hasPrivacyPassword       // ✅ Add this
+    // Privacy password functions
+    setPrivacyPassword,
+    verifyPrivacyPassword,
+    hasPrivacyPassword,
+    updatePrivacyPassword,
+    removePrivacyPassword
 };

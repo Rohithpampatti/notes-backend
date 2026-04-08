@@ -30,6 +30,8 @@ router.post('/ai/analyze-all', aiController.analyzeAllNotes);
 // Privacy password routes
 router.post('/privacy/set-password', noteController.setPrivacyPassword);
 router.post('/privacy/verify-password', noteController.verifyPrivacyPassword);
-router.get('/privacy/has-password', noteController.hasPrivacyPassword); EXISTS
+router.get('/privacy/has-password', noteController.hasPrivacyPassword);
+router.put('/privacy/update-password', noteController.updatePrivacyPassword);
+router.delete('/privacy/remove-password', noteController.removePrivacyPassword);
 
 module.exports = router;
