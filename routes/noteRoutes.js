@@ -26,6 +26,10 @@ router.post('/:id/reminder', noteController.updateReminder);
 router.post('/ai/summarize', aiController.summarizeNote);
 router.post('/ai/suggest-title', aiController.suggestTitle);
 router.post('/ai/extract-tags', aiController.extractTags);
-router.post('/ai/analyze-all', aiController.analyzeAllNotes);  // ✅ MAKE SURE THIS LINE EXISTS
+router.post('/ai/analyze-all', aiController.analyzeAllNotes);
+// Privacy password routes
+router.post('/privacy/set-password', noteController.setPrivacyPassword);
+router.post('/privacy/verify-password', noteController.verifyPrivacyPassword);
+router.get('/privacy/has-password', noteController.hasPrivacyPassword); EXISTS
 
 module.exports = router;

@@ -284,7 +284,80 @@ const updateReminder = async (req, res) => {
     }
 };
 
-// ✅ EXPORT with the new function
+// Set or update privacy password for user's private notes
+const setPrivacyPassword = async (req, res) => {
+    try {
+        const { password } = req.body;
+        const userId = req.user.id;
+
+        if (!password || password.length < 4) {
+            return res.status(400).json({ error: 'Password must be at least 4 characters' });
+        }
+
+        // Find any note belonging to user to update privacy password
+        const note = await Note.findOne({ userId });
+
+        if (note) {
+            note.privacyPassword = password;
+            await note.save();
+        } else {
+            // Create a placeholder note to store privacy password
+            const newNote = new Note({
+                userId,
+                title: "Privacy Settings",
+                content: "",
+                privacyPassword: password
+            });
+            await newNote.save();
+        }
+
+        res.json({ message: 'Privacy password set successfully' });
+    } catch (error) {
+        console.error('Set privacy password error:', error);
+        res.status(500).json({ error: 'Failed to set privacy password' });
+    }
+};
+
+// Verify privacy password
+const verifyPrivacyPassword = async (req, res) => {
+    try {
+        const { password } = req.body;
+        const userId = req.user.id;
+
+        const note = await Note.findOne({ userId });
+
+        if (!note || !note.privacyPassword) {
+            return res.json({ hasPassword: false, verified: false });
+        }
+
+        const isValid = (password === note.privacyPassword);
+
+        res.json({
+            verified: isValid,
+            hasPassword: true
+        });
+    } catch (error) {
+        console.error('Verify privacy password error:', error);
+        res.status(500).json({ error: 'Failed to verify password' });
+    }
+};
+
+// Check if user has privacy password set
+const hasPrivacyPassword = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const note = await Note.findOne({ userId });
+
+        res.json({
+            hasPassword: !!(note && note.privacyPassword)
+        });
+    } catch (error) {
+        console.error('Check privacy password error:', error);
+        res.status(500).json({ error: 'Failed to check password status' });
+    }
+};
+
+// Add to module.exports
 module.exports = {
     createNote,
     getNotes,
@@ -294,5 +367,8 @@ module.exports = {
     shareNote,
     createPublicLink,
     getPublicNote,
-    updateReminder  // ✅ ADD THIS
+    updateReminder,
+    setPrivacyPassword,      // ✅ Add this
+    verifyPrivacyPassword,   // ✅ Add this
+    hasPrivacyPassword       // ✅ Add this
 };
