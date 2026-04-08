@@ -4,8 +4,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER, // Your Gmail address
-        pass: process.env.EMAIL_PASS  // Your Gmail app password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
@@ -24,7 +24,7 @@ const sendReminderEmail = async (toEmail, title, reminderDate, noteId) => {
                         ${new Date(reminderDate).toLocaleString()}
                     </p>
                     <h3>Note: ${title}</h3>
-                    <a href="http://localhost:5173" style="display: inline-block; margin-top: 20px; background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                    <a href="https://notes-frontend-gamma-lovat.vercel.app" style="display: inline-block; margin-top: 20px; background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
                         Open Notes App
                     </a>
                     <p style="margin-top: 30px; font-size: 12px; color: #666;">
